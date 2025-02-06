@@ -1,5 +1,7 @@
 # CrossPooter
 
+![CrossPooter Logo](crosspooter.jpeg?raw=true)
+
 ## Overview
 
 CrossPooter is designed to poot your toots across different platforms. It reads an RSS feed and posts new entries to GoToSocial and Bluesky.
