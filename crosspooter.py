@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import requests
 import os
 import requests
+import logging
 from atproto import Client
 from atproto import client_utils
 from atproto import models
@@ -14,6 +15,9 @@ gts_token = os.getenv('GTS_TOKEN')
 gts_headers = {'Authorization': f'Bearer {gts_token}'}
 bsky = Client()
 bsky.login(os.getenv('BSKY_DID'), os.getenv('BSKY_PASSWORD'))
+
+# Configure logging
+logging.basicConfig(filename='script.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Save the article's image to a local folder and return the filename
 def save_image(url, filename):
@@ -46,9 +50,9 @@ def post_to_gts(title, url, description, filename, image_alt):
     }
     post_response = requests.post(gts_url + "statuses", headers=gts_headers, data=data)
     if post_response.status_code == 200:
-        print("Posted to GTS successfully")
+        logging.info("Posted to GTS successfully.")
     else:
-        print("Posting to GTS failed: " + post_response.text)
+        logging.error("Posting to GTS failed: " + post_response.text)
 
 # Post the message to Bluesky
 def post_to_bsky(title, url, description, filename, image_alt):
@@ -73,9 +77,9 @@ def post_to_bsky(title, url, description, filename, image_alt):
     post = bsky.send_post(tb, embed=embed)
 
     if post.uri:
-        print("Posted to Bluesky successfully")
+        logging.info("Posted to Bluesky successfully")
     else:
-        print("Posting to Bluesky failed: " + post.error)
+        logging.error("Posting to Bluesky failed: " + post.error)
 
 # 
 def check_for_new_posts():
@@ -90,7 +94,7 @@ def check_for_new_posts():
     # Only do the first post
     post = rss_feed.entries[0]
     if post.id == last_id:
-        print("No new posts. Already seen: " + post.id)
+        logging.info(f"No new posts. Already seen: {post.id}")
     else:
         # Make a get request to the post's link
         response = requests.get(post.link)
@@ -119,12 +123,12 @@ def check_for_new_posts():
             save_image(image, filename)
         else:
             filename = None
-
-        print(url)
+            
+        logging.info(f"Processing new post: {url}")
 
         # Post the content to both GoToSocial and Bluesky
-        # post_to_gts(title, url, description, filename, image_alt)
-        # post_to_bsky(title, url, description, filename, image_alt)
+        post_to_gts(title, url, description, filename, image_alt)
+        post_to_bsky(title, url, description, filename, image_alt)
 
          # Write the latest post's ID to the file
         with open('last_id.txt', 'w') as id_file:
