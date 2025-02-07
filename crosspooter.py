@@ -2,7 +2,6 @@ import feedparser
 from bs4 import BeautifulSoup
 import requests
 import os
-import requests
 import logging
 from atproto import Client
 from atproto import client_utils
@@ -88,13 +87,15 @@ def check_for_new_posts():
             last_id = id_file.readline().strip()
     except FileNotFoundError:
         last_id = None
+    
 
     # Parse the RSS feed
     rss_feed = feedparser.parse(rss_url)
     # Only do the first post
     post = rss_feed.entries[0]
+    logging.info(f"Got latest post: {post.id}")
     if post.id == last_id:
-        logging.info(f"No new posts. Already seen: {post.id}")
+        logging.info(f"Skipping because already seen.")
     else:
         # Make a get request to the post's link
         response = requests.get(post.link)
@@ -123,10 +124,9 @@ def check_for_new_posts():
             save_image(image, filename)
         else:
             filename = None
-            
-        logging.info(f"Processing new post: {url}")
 
-        # Post the content to both GoToSocial and Bluesky
+        logging.info(f"Posting with following information: \nTitle: {title}\nDescription: {description}\nFilename: {filename}\nImage Alt: {image_alt}")
+        # Post the content to both GoToSocial and Bluesky        
         post_to_gts(title, url, description, filename, image_alt)
         post_to_bsky(title, url, description, filename, image_alt)
 
