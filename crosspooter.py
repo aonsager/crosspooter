@@ -2,6 +2,7 @@ import feedparser
 from bs4 import BeautifulSoup
 import requests
 import os
+import sys
 import logging
 from atproto import Client
 from atproto import client_utils
@@ -16,7 +17,7 @@ bsky = Client()
 bsky.login(os.getenv('BSKY_DID'), os.getenv('BSKY_PASSWORD'))
 
 # Configure logging
-logging.basicConfig(filename='script.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Save the article's image to a local folder and return the filename
 def save_image(url, filename):
