@@ -62,19 +62,11 @@ def post_to_bsky(title, url, description, filename, image_alt):
     tb.text("\n\n" + description)
 
     if filename:
-        thumb = bsky.upload_blob(open("images/" + filename, 'rb'))
-    else: 
-        thumb = None
-
-    embed = models.AppBskyEmbedExternal.Main(
-        external=models.AppBskyEmbedExternal.External(
-            title=title,
-            description=description,
-            uri=url,
-            thumb=thumb.blob if thumb else None,
-        )
-    )
-    post = bsky.send_post(tb, embed=embed)
+        with open(filename, 'rb') as f:
+            image = f.read()
+            post = bsky.send_image(text=tb, image=image, image_alt=image_alt)
+    else:
+        post = bsky.send_post(tb)
 
     if post.uri:
         logging.info("Posted to Bluesky successfully")
@@ -131,7 +123,7 @@ def check_for_new_posts():
         post_to_gts(title, url, description, filename, image_alt)
         post_to_bsky(title, url, description, filename, image_alt)
 
-         # Write the latest post's ID to the file
+        # Write the latest post's ID to the file
         with open('last_id.txt', 'w') as id_file:
             id_file.write(post.id)
    
